@@ -1,0 +1,37 @@
+#### Bumblebee Climate Analysis                 ####
+#### Data Processing and Analysis Workflow      ####
+#### Author: Alex Beauchemin. Date: 27 Feb 2026 ####
+
+
+#### BEE NEST ANALYSIS ####
+BEEBOX has the most reliable detections of nest departures/returns with minimal noise.
+- High quality audio recordings, minimal environmental noise due to close proximity to nest entrance and shelter from wind.
+- High confidence in behaviour detected --> nest departure/return vs foraging or other behaviours.
+- Good TOMST coverage (TOMST logger close by in exact same aspect and env. conditions).
+- Proximity to other climate dataloggers.
+
+#### Data Compilation & Processing ----
+Data sources: 
+- 2024: ARUQ recordings, TOMST data, weather station data (air rh, atm pressure), ECCC weather station (wind speed, wind dir), photoperiod.
+- 2025: ARUQ recordings, TOMST data, weather station data (air rh, atm pressure, precipitation, solar radiation, wind dir, wind speed, gust speed), photoperiod.
+
+Notes: precipitation data unreliable, consider y/n, radiation only available for 2025
+
+
+#### Data Analysis ----
+
+#### QUESTION 1: How do climate variables relate to bumblebee nest departures/returns in 2025?
+
+#### QUESTION 2: What is the effective temperature threshold for bumblebee activity at the nest?
+Using 2024 + 2025 data?
+
+#### QUESTION 3: How has climate changed over ECCC timeline?
+- Duration of period above temp. thresholds (Number of days above threshold/Number of good foraging days/Smtg like this).
+- Climate over early season vs late season.
+- Max temperature windows during foraging periods (Number of days above x temperature).
+- Climate favourability index over years --> is CC decreasing climate favourability for bumblebee foraging?
+
+
+
+### Idea farm ----
+Model selection --> from more complicated with more predictors, comparing with simple models using ECCC data types.
