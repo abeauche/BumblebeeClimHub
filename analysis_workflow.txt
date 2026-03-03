@@ -17,6 +17,10 @@ Data sources:
 
 Notes: precipitation data unreliable, consider y/n, radiation only available for 2025
 
+Compile 2025 dataset:
+- Summarise weather station data to the hourly resolution, taking mean of values recorded on shorter intervals.
+- Extrapolate buzz detections to the hourly resolution (sum two 10-minute detection estimates, multiply by 3 per hour).
+
 
 #### Data Analysis ----
 
