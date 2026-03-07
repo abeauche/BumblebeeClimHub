@@ -26,6 +26,23 @@ Compile 2025 dataset:
 
 #### QUESTION 1: How do climate variables relate to bumblebee nest departures/returns in 2025?
 
+Consider: bee activity ~ seasonal trend * daily rhythm * weather response
+- Seasonal pattern due to phenology 
+- Diurnal rhythm 
+- Response to daily weather
+
+Challenge: significant seasonal and diurnal patterns in weather 
+
+1. Standardize seasonal patterns
+2. Account for daily patterns
+3. Model isolated responses to weather (ex: temperature performance curve)
+
+Response variable: Hourly bumblebee detections -> convert to count data, consider poisson distribution or negative binomial?
+
+Consider modelling temperature anomaly/deviation?
+- Challenge: temperature closely correlated to sun_altitude (0.6)
+
+
 #### QUESTION 2: What is the effective temperature threshold for bumblebee activity at the nest?
 Using 2024 + 2025 data?
 
