@@ -29,6 +29,18 @@ Compile 2025 dataset:
 #### QUESTION 2: What is the effective temperature threshold for bumblebee activity at the nest?
 Using 2024 + 2025 data?
 
+Modelling a temperature-performance curve (TPC) --> https://www.nature.com/articles/s41467-024-53046-2 
+- Importance of comparing the performance of multiple alternative models across a given dataset, rather than selecting a single model in an arbitrary manner. (Kontopoulos et al. (2024))
+- Phenomenological models may be better suited for quantifying parameters related to the shape of the TPC, such as critical thermal limits (Tmin and Tmax)
+- Definitely a phenomenological modelling approach for this study -> unable to directly link temperature to enzyme action.
+- Because of high-resolution dataset, consider parameter-rich model.
+- If the goal is to estimate the thermal optimum, there should be numerous data points before and after the peak of the TPC. If this is not the case, the parameter estimates may be imprecise and biased to various degrees
+- Only consider positive values for response (ie activity)
+- Interested in Tmin, Tpk, and Tmax
+- Package nls.multistart fits model from different starting values
+  - Possibly: Specify starting values by performing linear regression on a subset of the dataset (e.g., to estimate the slope of the rising part of the TPC) or by using parameter estimates from the literature. 
+  - Fit each model to thermal performance dataset 1000 times. In every iteration, use a different starting value per parameter, sampling from a uniform distribution with bounds equal to 0.5 and 1.5 times initial starting value. 
+
 #### QUESTION 3: How has climate changed over ECCC timeline?
 - Duration of period above temp. thresholds (Number of days above threshold/Number of good foraging days/Smtg like this).
 - Climate over early season vs late season.
