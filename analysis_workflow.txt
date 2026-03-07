@@ -24,6 +24,10 @@ Compile 2025 dataset:
 
 #### Data Analysis ----
 
+To-do:
+- Identify how to account for structure of this data
+- Choose appropriate model for temperature and activity
+
 #### QUESTION 1: How do climate variables relate to bumblebee nest departures/returns in 2025?
 
 Consider: bee activity ~ seasonal trend * daily rhythm * weather response
