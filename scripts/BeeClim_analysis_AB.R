@@ -11,9 +11,28 @@
 #### SETUP ----
 # Load required libraries
 library(tidyverse)
+library(suncalc)
+
+# Add site coordinates
+lat <- 69.583
+lon <- -139.03
 
 # Load compiled datasets
 beeclim_2025 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/clean/QHI_bumblebee_nest_2025.csv")
+
+# Calculate sun altitude
+sun_pos <- getSunlightPosition(
+  date = beeclim_2025$datetime_utc,
+  lat = lat,
+  lon = lon
+)
+
+# sun_pos$altitude gives altitude in radians, convert to degrees
+sun_pos$altitude <- sun_pos$altitude * (180/pi)
+
+# Join with beeclim_2025
+beeclim_2025 <- beeclim_2025 %>%
+  left_join(sun_pos, by = c("datetime_utc"="date"))
 
 
 #### Exploratory visualizations ----
@@ -44,3 +63,34 @@ ggplot(beeclim_2025,
   ylim(-3,35) +
   theme_classic()
 
+
+# Identify starting point temperature for Tmin
+ggplot(beeclim_2025, 
+       aes(x = temperature_C, y = bumblebee_buzz_hourly)) +
+  geom_point() +
+  geom_smooth(method = "lm", colour = "orange2") +
+  ylim(0,1000) +
+  xlim(-5,15) +
+  theme_classic()
+
+ggplot(beeclim_2025, 
+       aes(x = temperature_C, y = bumblebee_buzz_hourly)) +
+  geom_point() +
+  geom_smooth(method = "lm", colour = "orange2") +
+  ylim(0,1000) +
+  xlim(-5,20) +
+  theme_classic()
+
+ggplot(beeclim_2025, 
+       aes(x = temperature_C, y = bumblebee_buzz_hourly)) +
+  geom_point() +
+  geom_smooth(method = "lm", colour = "orange2") +
+  ylim(0,1000) +
+  xlim(-5,30) +
+  theme_classic()
+
+# Assess correlation factors
+cor(beeclim_2025$temperature_C, beeclim_2025$doy)
+cor(beeclim_2025$temperature_C, beeclim_2025$solar_radiation)
+cor(beeclim_2025$temperature_C, beeclim_2025$time_of_day_hour)
+cor(beeclim_2025$temperature_C, beeclim_2025$altitude)
