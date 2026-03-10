@@ -158,6 +158,10 @@ beetemp_nest <- hourly_BEEBOX_detections %>%
 
 #### PART 4: Combine 2025 bumblebee detections with climate data ----
 
+# Load wind speed, wind dir, atm pressure, and station air temp from ECCC datasets
+# Air temp super incomplete unfortunately
+
+
 
 #### In progress ----
 # Load compiled datasets
