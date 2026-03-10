@@ -135,7 +135,7 @@ hourly_BEEBOX_detections <- hourly_BEEBOX_detections %>%
 # write_csv(hourly_BEEBOX_detections, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/hourly_BEEBOX_detections.csv")
 
 
-#### PART 3: Combine bumblebee detections with climate data ----
+#### PART 3: Combine bumblebee detections with temperature data ----
 
 # Read in raw temperature datasets
 hourly_temp_2024 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2024/QHI_location_temperature_hourly_2024.csv")
@@ -155,6 +155,8 @@ beetemp_nest <- hourly_BEEBOX_detections %>%
 
 # write_csv(beetemp_nest, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beetemp_nest.csv")
 
+
+#### PART 4: Combine 2025 bumblebee detections with climate data ----
 
 
 #### In progress ----
