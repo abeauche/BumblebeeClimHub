@@ -137,6 +137,24 @@ hourly_BEEBOX_detections <- hourly_BEEBOX_detections %>%
 
 #### PART 3: Combine bumblebee detections with climate data ----
 
+# Read in raw temperature datasets
+hourly_temp_2024 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2024/QHI_location_temperature_hourly_2024.csv")
+hourly_temp_2025 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_location_temperature_hourly_2025.csv")
+
+# Bind datasets together
+hourly_temp_QHI <- bind_rows(hourly_temp_2024, hourly_temp_2025)
+
+# Change timezone to show local time
+attr(hourly_temp_QHI$datetime, "tzone") <- "America/Whitehorse"
+
+# Join to detection dataset
+beetemp_nest <- hourly_BEEBOX_detections %>%
+  left_join(hourly_temp_QHI, by = c("location_id", "datetime")) %>%
+  select(location_id, datetime, detections_above_th1, detections_above_th2, time_of_day, value, year) %>%
+  rename(temperature_C = value)
+
+# write_csv(beetemp_nest, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beetemp_nest.csv")
+
 
 
 #### In progress ----
@@ -159,3 +177,25 @@ beeclim_2025 <- beeclim_2025 %>%
 
 # Save dataset
 write_csv(beeclim_2025, "./data/clean/beeclim_2025.csv")
+
+
+#### Exploration farm ----
+
+# Comparing summer temperatures between 2024-2025
+# Calculate yearly means
+year_means <- beetemp_nest %>%
+  group_by(year) %>%
+  summarise(mean_temp = mean(temperature_C, na.rm = TRUE)) %>%
+  na.omit()
+
+# Plot temperature distributions
+ggplot(beetemp_nest, aes(x = temperature_C, fill = factor(year))) +
+  geom_density(alpha = 0.05) +                  # filled distributions
+  geom_vline(data = year_means,               # add vertical lines for means
+             aes(xintercept = mean_temp, colour = factor(year)),
+             linetype = "dashed", size = 1) +
+  scale_fill_brewer(palette = "Set1") +
+  scale_colour_brewer(palette = "Set1") +
+  labs(x = "Temperature (°C)", y = "Density", fill = "Year", colour = "Year") +
+  theme_minimal()
+
