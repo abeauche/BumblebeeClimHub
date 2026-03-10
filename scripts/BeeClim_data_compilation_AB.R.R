@@ -12,6 +12,8 @@
 # Load required libraries
 library(tidyverse)
 library(suncalc)
+library(data.table)
+library(hms)
 
 # Add site coordinates
 lat <- 69.583
@@ -22,7 +24,6 @@ lon <- -139.03
 
 
 #### PART 1: Compiling bumblebee recognizer predictions ----
-library(data.table)
 
 ## Load raw datasets
 ARUQ0_2024_pred_raw <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2024/QHI24_ARUQ00_pred.csv")
@@ -91,7 +92,7 @@ rm(ARUQ_pred_df_mapped_datetime)
 
 #### PART 2: Aggregate and filter bumblebee detections ----
 
-ARUQ_pred_df_mapped_datetime <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_datetime_clean.csv")
+# ARUQ_pred_df_mapped_datetime <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_datetime_clean.csv")
 
 # Change timezone to show local time
 attr(ARUQ_pred_df_mapped_datetime$datetime, "tzone") <- "America/Whitehorse"
@@ -113,8 +114,29 @@ rm(ARUQ_pred_df_mapped_datetime)
 # Write .csv
 # write_csv(ARUQ_bumblebee_detections, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/ARUQ_bumblebee_detections.csv")
 
+# Aggregate bumblebee detections per hour, filter for beebox
+hourly_BEEBOX_detections <- ARUQ_bumblebee_detections %>%
+  filter(location_id == "BEEBOX") %>%
+  mutate(datetime = floor_date(datetime, "hour")) %>%  # round down to start of the hour
+  group_by(location_id, datetime) %>%
+  summarise(
+    detections_above_th1 = sum(detections_above_th1, na.rm = TRUE),
+    detections_above_th2 = sum(detections_above_th2, na.rm = TRUE),
+    .groups = "drop"
+  )
 
-#### PART 3: ----
+# Create time_of_day column with local time
+hourly_BEEBOX_detections <- hourly_BEEBOX_detections %>%
+  mutate(
+    time_of_day = as_hms(datetime)  # extract the time (HH:MM:SS) from datetime
+  )
+
+# Write .csv
+# write_csv(hourly_BEEBOX_detections, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/hourly_BEEBOX_detections.csv")
+
+
+#### PART 3: Combine bumblebee detections with climate data ----
+
 
 
 #### In progress ----
