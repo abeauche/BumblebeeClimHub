@@ -158,9 +158,62 @@ beetemp_nest <- hourly_BEEBOX_detections %>%
 
 #### PART 4: Combine 2025 bumblebee detections with climate data ----
 
-# Load wind speed, wind dir, atm pressure, and station air temp from ECCC datasets
-# Air temp super incomplete unfortunately
+# beetemp_nest <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beetemp_nest.csv")
 
+# Change timezone to show local time
+attr(beetemp_nest$datetime, "tzone") <- "America/Whitehorse"
+
+# Read in ECCC datasets
+ECCC_06_2024 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2024/ECCC_climate_hourly_herschel_2024/en_climate_hourly_YT_2100636_06-2024_P1H.csv")
+ECCC_07_2024 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2024/ECCC_climate_hourly_herschel_2024/en_climate_hourly_YT_2100636_07-2024_P1H.csv")
+ECCC_08_2024 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2024/ECCC_climate_hourly_herschel_2024/en_climate_hourly_YT_2100636_08-2024_P1H.csv")
+ECCC_06_2025 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/ECCC_climate_hourly_herschel_2025/en_climate_hourly_YT_2100636_06-2025_P1H.csv")
+ECCC_07_2025 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/ECCC_climate_hourly_herschel_2025/en_climate_hourly_YT_2100636_07-2025_P1H.csv")
+ECCC_08_2025 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/ECCC_climate_hourly_herschel_2025/en_climate_hourly_YT_2100636_08-2025_P1H.csv")
+
+## Merge datasets
+ECCC_list <- mget(ls(pattern = "^ECCC_\\d{2}_\\d{4}$"))
+
+# Bind datasets together
+ECCC_compiled <- bind_rows(ECCC_list)
+rm(list = ls(pattern = "^ECCC_\\d{2}_\\d{4}$")) # remove individual datasets to reduce memory use
+rm(ECCC_list)
+head(ECCC_compiled)
+
+# Select relevant ECCC columns and rename columns
+ECCC_select <- ECCC_compiled %>%
+  select("Date/Time (LST)", "Time (LST)", "Temp (°C)", "Rel Hum (%)", "Precip. Amount (mm)", "Wind Dir (10s deg)", "Wind Spd (km/h)", "Stn Press (kPa)") %>%
+  rename(
+    "datetime_LST" = "Date/Time (LST)", 
+    "time_of_day" = "Time (LST)", 
+    "temperature_C_ECCC" = "Temp (°C)", 
+    "rel_hum_ECC" = "Rel Hum (%)", 
+    "precip_mm_ECCC" = "Precip. Amount (mm)", 
+    "wind_dir_10deg" = "Wind Dir (10s deg)", 
+    "wind_speed_kmh" = "Wind Spd (km/h)", 
+    "stn_press_kpa" = "Stn Press (kPa)"
+  )
+
+# Adjust time zone 
+ECCC_select$datetime_LST <- force_tz(ECCC_select$datetime_LST, "America/Whitehorse") # datetime_LST is in local standard time (America/Whitehorse)
+ECCC_select$datetime_utc <- with_tz(ECCC_select$datetime_LST, "UTC")
+head(ECCC_select$datetime_LST) 
+head(ECCC_select$datetime_utc) # check whether conversion worked
+
+# Merge with bee detection dataset
+beeclim_ECCC <- beetemp_nest %>%
+  left_join(ECCC_select, by = c("datetime" = "datetime_utc", "time_of_day"))
+
+# Remove NA, convert year to factor
+beeclim_ECCC <- beeclim_ECCC %>%
+  dplyr::filter(!is.na(year)) %>%
+  dplyr::mutate(year = as.factor(year))
+
+# Write as .csv
+# write_csv(beeclim_ECCC, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beeclim_ECCC.csv")
+
+
+#### PART 5: ----
 
 
 #### In progress ----
@@ -204,4 +257,5 @@ ggplot(beetemp_nest, aes(x = temperature_C, fill = factor(year))) +
   scale_colour_brewer(palette = "Set1") +
   labs(x = "Temperature (°C)", y = "Density", fill = "Year", colour = "Year") +
   theme_minimal()
+
 
