@@ -18,9 +18,6 @@ lat <- 69.583
 lon <- -139.03
 
 # Load raw datasets
-hourly_TOMST_2025 <- read_csv("/Volumes/TundraBUZZ/data/raw/beebox_hourly_temp_2025.csv")
-summary_flightbuzzes_ARUQ_2025 <- read_csv("/Volumes/TundraBUZZ/outputs/recognizer_outputs/clean/summary_flightbuzzes_ARUQ_2025.csv")
-QHI_clim_data_2025 <- read_csv("/Volumes/TundraBUZZ/QHI_clim_data_2025.csv")
 
 
 
@@ -78,13 +75,23 @@ ARUQ_pred_df_mapped <- ARUQ_pred_df %>%
 rm(ARUQ_pred_raw)
 rm(ARUQ_pred_df)
 
+# Mutate datetime to POSIXct format
+ARUQ_pred_df_mapped_datetime <- ARUQ_pred_df_mapped %>% 
+  mutate(datetime = as.POSIXct(datetime, format="%Y%m%d_%H%M%S", tz="America/Whitehorse")  # Convert to POSIXct
+  )
+
+# Remove obsolete objects 
+rm(ARUQ_pred_df_mapped_datetime)
+
 # Save compiled dataset as .csv
 # write_csv(ARUQ_pred_df_mapped, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_clean.csv")
+# write_csv(ARUQ_pred_df_mapped_datetime, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_datetime_clean.csv")
 
 
 #### PART 2: Aggregate and filter bumblebee detections ----
 
-ARUQ_pred_df_mapped <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_clean.csv")
+ARUQ_pred_df_mapped_datetime <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_datetime_clean.csv")
+
 
 # Define threshold and filter data
 threshold <- 8  
