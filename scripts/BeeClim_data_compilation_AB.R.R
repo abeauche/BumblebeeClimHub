@@ -88,24 +88,36 @@ rm(ARUQ_pred_df_mapped_datetime)
 # write_csv(ARUQ_pred_df_mapped_datetime, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_datetime_clean.csv")
 
 
+
 #### PART 2: Aggregate and filter bumblebee detections ----
 
 ARUQ_pred_df_mapped_datetime <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/QHI_BEEBOX_pred_datetime_clean.csv")
 
+# Change timezone to show local time
+attr(ARUQ_pred_df_mapped_datetime$datetime, "tzone") <- "America/Whitehorse"
 
 # Define threshold and filter data
-threshold <- 8  
-ARUQ_bumblebee_detections <- ARUQ_pred_df_mapped %>%
-  filter(BUZZ > threshold) %>%
-  mutate(duration_above_threshold = 0.15) # Each segment is 0.3s, so each overlap segment is 0.15s
+threshold_1 <- 1.74 # threshold optimized using recognier scores
+threshold_2 <- 8 # high precision score
+
+# Aggregate number of detections per recording period according to both thresholds
+setDT(ARUQ_pred_df_mapped_datetime)
+ARUQ_bumblebee_detections <- ARUQ_pred_df_mapped_datetime[, .(
+  detections_above_th1 = sum(BUZZ > threshold_1),
+  detections_above_th2 = sum(BUZZ > threshold_2)
+), by = .(location_id, datetime)]
+
+# Remove obsolete objects
+rm(ARUQ_pred_df_mapped_datetime)
+
+# Write .csv
+# write_csv(ARUQ_bumblebee_detections, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/ARUQ_bumblebee_detections.csv")
 
 
+#### PART 3: ----
 
 
-
-
-
-#### In progress
+#### In progress ----
 # Load compiled datasets
 beeclim_2025 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/clean/QHI_bumblebee_nest_2025.csv")
 
