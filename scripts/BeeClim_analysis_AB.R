@@ -144,6 +144,186 @@ ggplot(daily_time_dist_time_bin,
 
 
 
+beeclim_ECCC_time_bin_prop <- beeclim_ECCC_time_bin %>%
+  left_join(mean_temp_wind, by = "date") %>%
+  group_by(date) %>%
+  mutate(total_detections = sum(detections_above_th2), .groups = "drop") %>%
+  group_by(date, time_bin, mean_temp, mean_wind, total_detections) %>%
+  summarize(prop_activity = sum(detections_above_th2) / first(total_detections), .groups = "drop")
+
+beeclim_ECCC_time_bin_detections <- beeclim_ECCC_time_bin %>%
+  left_join(mean_temp_wind, by = "date") %>%
+  group_by(date) %>%
+  mutate(total_detections = sum(detections_above_th2), .groups = "drop") %>%
+  group_by(date, time_bin, mean_temp, mean_wind, total_detections) %>%
+  summarize(bin_detections = sum(detections_above_th2), .groups = "drop")
+
+bee_model_data <- beeclim_ECCC_time_bin_prop %>%
+  filter(!is.nan(prop_activity)) %>%
+  filter(mean_wind < 20) %>%
+  filter(prop_activity < 1)
+
+mod <- lm(prop_activity ~ mean_temp * time_bin, data = bee_model_data)
+summary(mod)
+
+hist(bee_model_data$prop_activity)
+
+
+library(emmeans)
+
+slopes <- emtrends(mod, ~ time_bin, var = "mean_temp")
+summary(slopes, infer = TRUE)
+
+plot(slopes)
+
+as.data.frame(slopes)
+
+ggplot(as.data.frame(slopes), aes(time_bin, mean_temp.trend)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) +
+  labs(y = "Temperature slope", x = "Time of day")
+
+as.data.frame(slopes) %>%
+  ggplot(aes(time_bin, mean_temp.trend)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  ylab("Temperature slope (Δ proportion activity per °C)") +
+  xlab("Time of day") +
+  theme_classic()
+
+pairs(slopes)
+
+newdata <- expand.grid(
+  mean_temp = seq(min(bee_model_data$mean_temp),
+                  max(bee_model_data$mean_temp),
+                  length.out = 100),
+  time_bin = levels(bee_model_data$time_bin)
+)
+
+pred <- predict(mod, newdata = newdata, se.fit = TRUE)
+
+newdata$fit <- pred$fit
+newdata$se <- pred$se.fit
+
+newdata <- newdata %>%
+  mutate(
+    lower = fit - 1.96 * se,
+    upper = fit + 1.96 * se
+  )
+
+ggplot(newdata, aes(x = mean_temp, y = fit, colour = time_bin)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = time_bin),
+              alpha = 0.2, colour = NA) +
+  facet_wrap(~time_bin) +
+  labs(
+    x = "Mean temperature (°C)",
+    y = "Predicted proportion of daily activity",
+    colour = "Time of day",
+    fill = "Time of day"
+  ) +
+  theme_classic()
+
+
+
+ggplot() +
+  geom_point(data = bee_model_data,
+             aes(x = mean_temp, y = prop_activity, colour = time_bin),
+             alpha = 0.4) +
+  geom_line(data = newdata,
+            aes(x = mean_temp, y = fit, colour = time_bin),
+            linewidth = 1.2) +
+  geom_ribbon(data = newdata,
+              aes(x = mean_temp, ymin = lower, ymax = upper, fill = time_bin),
+              alpha = 0.2, colour = NA) +
+  facet_wrap(~time_bin) +
+  labs(
+    x = "Mean temperature (°C)",
+    y = "Proportion of daily activity",
+    colour = "Time of day",
+    fill = "Time of day"
+  ) +
+  theme_classic()
+
+sig_bins <- c("(4,8]", "(8,12]", "(12,16]")
+
+newdata_sig <- newdata %>%
+  filter(time_bin %in% sig_bins)
+
+bee_model_sig <- bee_model_data %>%
+  filter(time_bin %in% sig_bins)
+
+ggplot() +
+  geom_point(data = bee_model_sig,
+             aes(mean_temp, prop_activity, colour = time_bin),
+             alpha = 0.5) +
+  geom_line(data = newdata_sig,
+            aes(mean_temp, fit, colour = time_bin),
+            colour = "black",
+            linewidth = 1.2) +
+  geom_ribbon(data = newdata_sig,
+              aes(mean_temp, ymin = lower, ymax = upper, fill = time_bin),
+              alpha = 0.5) +
+  facet_wrap(~time_bin, ncol = 1) +
+  theme_classic() +
+  labs(
+    x = "Daily mean temperature (°C)",
+    y = "Proportion of daily activity"
+  ) +
+  theme(legend.position = "none")
+
+
+midday_bee <- beeclim_ECCC_time_bin_prop %>%
+  filter(prop_activity != "NaN") %>%
+  filter(time_bin == "(12,16]") %>%
+  filter(mean_wind < 20)
+
+early_morning_bee <- beeclim_ECCC_time_bin_prop %>%
+  filter(prop_activity != "NaN") %>%
+  filter(time_bin == "(4,8]") %>%
+  filter(mean_wind < 20)
+
+morning_bee <- beeclim_ECCC_time_bin_prop %>%
+  filter(prop_activity != "NaN") %>%
+  filter(time_bin == "(8,12]") %>%
+  filter(mean_wind < 20)
+
+evening_bee <- beeclim_ECCC_time_bin_prop %>%
+  filter(prop_activity != "NaN") %>%
+  filter(time_bin == "(16,20]") %>%
+  filter(mean_wind < 20)
+
+night_bee <- beeclim_ECCC_time_bin_prop %>%
+  filter(prop_activity != "NaN") %>%
+  filter(prop_activity < 1) %>%
+  filter(time_bin %in% c("(20,24]", "(0,4]")) %>%
+  filter(mean_wind < 20)
+
+ggplot(midday_bee, aes(x = mean_temp, y = prop_activity)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic() 
+  
+ggplot(morning_bee, aes(x = mean_temp, y = prop_activity)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic() 
+
+ggplot(evening_bee, aes(x = mean_temp, y = prop_activity)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+ggplot(night_bee, aes(x = mean_temp, y = prop_activity)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+ggplot(early_morning_bee, aes(x = mean_temp, y = prop_activity)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
 
 #### Exploratory visualizations ----
 
