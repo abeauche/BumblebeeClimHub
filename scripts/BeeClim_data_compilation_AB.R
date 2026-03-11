@@ -214,7 +214,7 @@ beeclim_ECCC <- beeclim_ECCC %>%
 
 
 #### PART 5: Calculate sun data----
-beeclim_ECCC <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beeclim_ECCC.csv")
+# beeclim_ECCC <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beeclim_ECCC.csv")
 
 # Calculate sun altitude
 sun_pos <- getSunlightPosition(
@@ -231,7 +231,7 @@ beeclim_ECCC <- beeclim_ECCC %>%
   left_join(sun_pos, by = c("datetime"="date"))
 
 # Save dataset
-write_csv(beeclim_ECCC, "./data/clean/beeclim_ECCC.csv")
+# write_csv(beeclim_ECCC, "./data/clean/beeclim_ECCC.csv")
 
 
 
