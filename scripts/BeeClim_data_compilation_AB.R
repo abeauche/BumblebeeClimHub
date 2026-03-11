@@ -213,16 +213,12 @@ beeclim_ECCC <- beeclim_ECCC %>%
 # write_csv(beeclim_ECCC, "/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beeclim_ECCC.csv")
 
 
-#### PART 5: ----
-
-
-#### In progress ----
-# Load compiled datasets
-beeclim_2025 <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/clean/QHI_bumblebee_nest_2025.csv")
+#### PART 5: Calculate sun data----
+beeclim_ECCC <- read_csv("/Volumes/IGUTCHAQ/projects/BumblebeeClim/data/raw/2025/beeclim_ECCC.csv")
 
 # Calculate sun altitude
 sun_pos <- getSunlightPosition(
-  date = beeclim_2025$datetime_utc,
+  date = beeclim_ECCC$datetime, # make sure datetime is displayed in UTC here
   lat = lat,
   lon = lon
 )
@@ -231,11 +227,13 @@ sun_pos <- getSunlightPosition(
 sun_pos$altitude <- sun_pos$altitude * (180/pi)
 
 # Join with beeclim_2025
-beeclim_2025 <- beeclim_2025 %>%
-  left_join(sun_pos, by = c("datetime_utc"="date"))
+beeclim_ECCC <- beeclim_ECCC %>%
+  left_join(sun_pos, by = c("datetime"="date"))
 
 # Save dataset
-write_csv(beeclim_2025, "./data/clean/beeclim_2025.csv")
+write_csv(beeclim_ECCC, "./data/clean/beeclim_ECCC.csv")
+
+
 
 
 #### Exploration farm ----
