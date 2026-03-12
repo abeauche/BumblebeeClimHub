@@ -551,3 +551,53 @@ cor(beeclim_2025$temperature_C, beeclim_2025$doy)
 cor(beeclim_2025$temperature_C, beeclim_2025$solar_radiation)
 cor(beeclim_2025$temperature_C, beeclim_2025$time_of_day_hour)
 cor(beeclim_2025$temperature_C, beeclim_2025$altitude)
+
+
+
+
+
+
+
+
+
+
+##### SPATIAL PARTITIONING
+
+
+
+flight_buzz_daily_2024 <- read_csv("/Volumes/TundraBUZZ/data/clean/flight_buzz_daily.csv")
+
+# Change timezone to show local time
+attr(flight_buzz_daily_2024$date, "tzone") <- "America/Whitehorse"
+# Change timezone to show local time
+attr(mean_temp_wind$date, "tzone") <- "America/Whitehorse"
+
+flight_buzz_daily_2024 <- flight_buzz_daily_2024 %>%
+  mutate(date = as.Date(date))
+
+mean_temp_wind <- mean_temp_wind %>%
+  mutate(date = as.Date(date))
+
+flight_buzz_ideal_2024 <- flight_buzz_daily_2024 %>%
+  left_join(mean_temp_wind, by = "date", suffix = c("_local", "_overall")) %>%
+  filter(mean_wind < 20) %>%
+  filter(microclimate != "BEEBOX")
+
+flight_buzz_ideal_2024_total <- flight_buzz_ideal_2024 %>%
+  group_by(date) %>%
+  summarize(total_daily_detection = sum(daily_duration_above_threshold/0.15), .groups = "drop")
+
+flight_buzz_ideal_2024_prop <- flight_buzz_ideal_2024 %>%
+  left_join(flight_buzz_ideal_2024_total, by = "date") %>%
+  group_by(date, microclimate, mean_temp_overall) %>%
+  summarize(prop_activity = sum(daily_duration_above_threshold/0.15)/first(total_daily_detection), .groups="drop")
+  
+
+ggplot(flight_buzz_ideal_2024_prop, aes(x = mean_temp_overall, y = prop_activity, colour = microclimate)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+
+head(flight_buzz_daily_2024)
+head(mean_temp_wind)
