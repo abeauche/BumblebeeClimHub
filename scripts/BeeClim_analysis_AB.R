@@ -183,6 +183,11 @@ ggplot(as.data.frame(slopes), aes(time_bin, mean_temp.trend)) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) +
   labs(y = "Temperature slope", x = "Time of day")
 
+
+
+
+##### SLOPE FIGURE
+
 as.data.frame(slopes) %>%
   ggplot(aes(time_bin, mean_temp.trend)) +
   geom_point(size = 3) +
@@ -190,6 +195,74 @@ as.data.frame(slopes) %>%
   geom_hline(yintercept = 0, linetype = "dashed") +
   ylab("Temperature slope (Δ proportion activity per °C)") +
   xlab("Time of day") +
+  scale_x_discrete(position = "top") +
+  theme_classic()
+
+
+slopes_plot <- as.data.frame(slopes) %>%
+  mutate(bin_start = seq(0, 20, by = 4),
+         bin_end = bin_start + 4,
+         bin_mid = (bin_start + bin_end)/2)
+
+ggplot(slopes_plot, aes(x = bin_mid, y = mean_temp.trend)) +
+  # background rectangles for bins
+  geom_rect(aes(xmin = bin_start, xmax = bin_end, ymin = -Inf, ymax = Inf),
+            fill = "lightgrey", alpha = 0.2) +
+  # points and error bars
+  geom_point(size = 3, colour = "#E69F00") +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2, colour = "#E69F00") +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey30") +
+  # solar noon line at 14.3h (2:18pm)
+  geom_vline(xintercept = 14.3, colour = "grey30", linewidth = 0.8) +
+  ylab("Temperature slope (Δ proportion activity per °C)") +
+  xlab("Time of day (hour)") +
+  scale_x_continuous(position = "top", limits = c(0,24), breaks = seq(0,24,4)) +
+  theme_classic()
+
+library(RColorBrewer)
+
+ggplot(slopes_plot, aes(x = bin_mid, y = mean_temp.trend, colour = time_bin)) +
+  geom_rect(aes(xmin = bin_start, xmax = bin_end, ymin = 0.02, ymax = 0.025, fill = time_bin),
+            alpha = 0.5) +
+  # points and error bars
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey30") +
+  ylab("Temperature slope (Δ proportion activity per °C)") +
+  xlab("Time of day (hour)") +
+  scale_x_continuous(position = "top", limits = c(0,24), breaks = seq(0,24,4)) +
+  scale_colour_manual(values = c(
+    "[0,4]" = "#4D4D4D",     # dark purple → night
+    "(4,8]" = "#FF8000",     # morning twilight
+    "(8,12]" = "#FFA500",    # morning → sunny yellow
+    "(12,16]" = "gold3",   # afternoon orange
+    "(16,20]" = "#4D4D4D",   # late afternoon / sunset
+    "(20,24]" = "#4D4D4D"    # night
+  )) + # nice colour palette
+  scale_fill_manual(values = c(
+    "[0,4]" = "#4D4D4D",     # dark purple → night
+    "(4,8]" = "#FF8000",     # morning twilight
+    "(8,12]" = "#FFA500",    # morning → sunny yellow
+    "(12,16]" = "gold",   # afternoon orange
+    "(16,20]" = "#4D4D4D",   # late afternoon / sunset
+    "(20,24]" = "#4D4D4D"    # night
+  )) +
+  theme_classic()
+
+
+
+
+
+ggplot(as.data.frame(slopes), aes(x = time_bin, y = mean_temp.trend, colour = time_bin)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_colour_manual(values = c("Morning" = "#56B4E9",
+                                 "Solar noon" = "#E69F00",
+                                 "Afternoon" = "#009E73")) +
+  ylab("Temperature slope (Δ proportion activity per °C)") +
+  xlab("Time of day (hour)") +
+  scale_x_discrete(position = "top") +
   theme_classic()
 
 pairs(slopes)
@@ -265,13 +338,81 @@ ggplot() +
   geom_ribbon(data = newdata_sig,
               aes(mean_temp, ymin = lower, ymax = upper, fill = time_bin),
               alpha = 0.5) +
-  facet_wrap(~time_bin, ncol = 1) +
+  facet_wrap(~time_bin, nrow = 1) +
+  scale_colour_manual(values = c(
+    "[0,4]" = "#4D4D4D",     # dark purple → night
+    "(4,8]" = "#FF8000",     # morning twilight
+    "(8,12]" = "#FFA500",    # morning → sunny yellow
+    "(12,16]" = "gold3",   # afternoon orange
+    "(16,20]" = "#4D4D4D",   # late afternoon / sunset
+    "(20,24]" = "#4D4D4D"    # night
+  )) + # nice colour palette
+  scale_fill_manual(values = c(
+    "[0,4]" = "#4D4D4D",     # dark purple → night
+    "(4,8]" = "#FF8000",     # morning twilight
+    "(8,12]" = "#FFA500",    # morning → sunny yellow
+    "(12,16]" = "gold",   # afternoon orange
+    "(16,20]" = "#4D4D4D",   # late afternoon / sunset
+    "(20,24]" = "#4D4D4D"    # night
+  )) +
   theme_classic() +
   labs(
     x = "Daily mean temperature (°C)",
     y = "Proportion of daily activity"
   ) +
   theme(legend.position = "none")
+
+beeclim_ECCC <- beeclim_ECCC %>%
+  mutate(month = month(date, label = TRUE))
+
+ggplot(beeclim_ECCC, aes(x = time_of_day, y = altitude, colour = month)) +
+  geom_smooth() +
+  theme_classic() +
+  labs(
+    x = "Time of day",
+    y = "Sun altitude (°)",
+    colour = "Month"
+  )
+
+
+#### SUN ALTITUDE FIGURE
+
+sun_summary <- beeclim_ECCC %>%
+  group_by(time_of_day) %>%
+  summarise(
+    mean_alt = mean(altitude, na.rm = TRUE),
+    min_alt = min(altitude, na.rm = TRUE),
+    max_alt = max(altitude, na.rm = TRUE)
+  )
+
+ggplot(sun_summary, aes(x = time_of_day)) +
+  # Night shading (sun below horizon)
+  geom_rect(aes(xmin =hms("00:00:00"), xmax = hms("23:00:00"),
+                ymin = -Inf, ymax = 0),
+            fill = "grey90", alpha = 0.1) +
+  geom_ribbon(aes(ymin = min_alt, ymax = max_alt), alpha = 0.2, fill = "#E69F00") +
+  geom_line(aes(y = mean_alt), linewidth = 1, colour = "#E69F00") +
+  geom_vline(xintercept = hms("14:18:00"),
+             colour = "orange4") +
+  annotate("text",
+           x = hms("14:13:00"),
+           y = 30,
+           label = "Solar noon (14:18)",
+           angle = 90,
+           vjust = - 0.5,
+           colour = "black")+
+  theme_classic() +
+  labs(
+    x = "Time of day",
+    y = "Solar altitude (°)"
+  )
+
+######
+
+
+ggplot(beeclim_ECCC, aes(x=time_of_day, y=altitude))+
+  geom_smooth(method="loess", colour) +
+  theme_classic()
 
 
 midday_bee <- beeclim_ECCC_time_bin_prop %>%
@@ -324,6 +465,32 @@ ggplot(early_morning_bee, aes(x = mean_temp, y = prop_activity)) +
   geom_point() +
   geom_smooth(method = "lm") +
   theme_classic()
+
+
+
+
+
+# test highest activity vs temp
+
+peak_activity <- beeclim_ECCC %>%
+  group_by(date) %>%
+  slice_max(detections_above_th2, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  left_join(mean_temp_wind, by = "date") %>%
+  #filter(mean_wind < 20) %>%
+  filter(time_of_day != hms("00:00:00"))
+
+ggplot(peak_activity, aes(x = mean_temp, y = time_of_day)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+
+
+
+
+
+
 
 #### Exploratory visualizations ----
 
