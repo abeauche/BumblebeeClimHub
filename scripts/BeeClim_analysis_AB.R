@@ -43,6 +43,60 @@ ggplot(beeclim_ECCC, aes(x = wind_speed_kmh, y = detections_above_th2)) +
   xlim(0,50) # bumblebee activity does not appear to drop off dramatically until wind speeds are >20 km/h
 
 
+ggplot(beeclim_ECCC, aes(x = temperature_C, y = altitude)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  theme_classic()
+
+ggplot(beeclim_ECCC, aes(x = altitude, y = detections_above_th2)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  theme_classic() +
+  ylim(0,1000)
+
+ggplot(beeclim_ECCC, aes(x = temperature_C, y = detections_above_th2, colour = factor(time_of_day))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_classic() +
+  ylim(0,1000)
+
+midday_bees <- beeclim_ECCC %>%
+  filter(time_of_day %in% c("16:00:00","13:00:00","14:00:00","15:00:00"))
+
+ggplot(midday_bees, aes(x = temperature_C, y = detections_above_th2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  theme_classic() +
+  ylim(0,1000)
+
+
+morning_bees <- beeclim_ECCC %>%
+  filter(time_of_day %in% c("09:00:00","10:00:00","11:00:00","12:00:00"))
+
+ggplot(morning_bees, aes(x = temperature_C, y = detections_above_th2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  theme_classic() +
+  ylim(0,1000)
+
+evening_bees <- beeclim_ECCC %>%
+  filter(time_of_day %in% c("17:00:00","18:00:00","19:00:00","20:00:00"))
+
+ggplot(evening_bees, aes(x = temperature_C, y = detections_above_th2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  theme_classic() +
+  ylim(0,1000)
+
+late_evening_bees <- beeclim_ECCC %>%
+  filter(time_of_day %in% c("21:00:00","22:00:00","23:00:00","00:00:00"))
+
+ggplot(late_evening_bees, aes(x = temperature_C, y = detections_above_th2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  theme_classic() +
+  ylim(0,1000)
+
 # Filter for winds < 20, days with sun altitude always > 0, retain warmest days
 ideal_bee_days <- mean_temp_wind %>%
   filter(mean_wind < 20)
